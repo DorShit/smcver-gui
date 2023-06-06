@@ -16,8 +16,57 @@
       {
         "command": "smcver-gui.helloWorld",
         "title": "Hello World"
-      }
-    ]
+      },
+      {
+				"command": "smcverFunctions.reveal",
+				"title": "SMcVer Function: Reveal"
+			},
+			{
+				"command": "smcverFunctions.changeTitle",
+				"title": "SMcVer Function: Change Title"
+			},
+      {
+        "command": "Update-TreeView",
+        "category": "Custom",
+        "title": "Actively updates the tree view",
+        "icon": "$(extensions-refresh)"
+    }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "smcver",
+          "title": "SMcVer",
+          "icon": "images/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "smcver": [
+        {
+          "id": "smcverFunctions",
+          "name": "Functions"
+        },
+        {
+          "id": "smcverMore",
+          "name": "More"
+        },
+        {
+          "id": "customView",
+          "name": "Custom View"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+          {
+              "command": "Update-TreeView",
+              "when": "view == customView",
+              "group": "navigation"
+          }
+      ]
+  }
+    
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
