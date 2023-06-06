@@ -2,7 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { SMCFunction } from './functions';
-import { CustomTreeDataProvider } from './custom-tree';
+import * as childProcess from 'child_process';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -21,7 +21,28 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.showInformationMessage('Hello World from SMcVer GUI!');
 	});
 
+	let disposable2 = vscode.commands.registerCommand('extension.runPythonScript', () => {
+		// Replace `path/to/script.py` with the actual path to your Python script
+		const pythonScriptPath = 'scripts/script.py';
+	
+		const pythonExecutable = 'python'; // Change this if your Python executable has a different name
+	
+		const command = `${pythonExecutable} "${pythonScriptPath}"`;
+	
+		childProcess.exec(command, (error, stdout, stderr) => {
+			if (error) {
+				console.error(error);
+				vscode.window.showErrorMessage('Failed to run the Python script.');
+			} else {
+				console.log(stdout);
+				console.error(stderr);
+				vscode.window.showInformationMessage('Python script executed successfully.');
+			}
+		});
+	});
+
 	context.subscriptions.push(disposable);
+	context.subscriptions.push(disposable2);
 
 	new SMCFunction(context);
 }
