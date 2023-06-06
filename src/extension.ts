@@ -24,7 +24,6 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(disposable);
 
 	new SMCFunction(context);
-	new CustomTreeDataProvider().register(context);
 }
 
 // This method is called when your extension is deactivated
