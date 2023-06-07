@@ -1,0 +1,13 @@
+.checkboxTreeView .monaco-list .monaco-list-row .checkboxTreeItem {
+    font-size: 4px;
+    font-style:italic;
+  }
+
+  .headlineTreeItem {
+    pointer-events: none;
+    cursor: default;
+  }
+  
+  .headlineTreeItem:hover {
+    background-color: unset;
+  }

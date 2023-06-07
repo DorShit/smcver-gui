@@ -9,27 +9,22 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onCommand:extension.openItem",
+    "onView:myTreeView"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "smcver-gui.helloWorld",
         "title": "Hello World"
-      },
+      }
+    ],
+    "viewsWelcome": [
       {
-        "command": "smcverFunctions.reveal",
-        "title": "SMcVer Function: Reveal"
-      },
-      {
-        "command": "smcverFunctions.changeTitle",
-        "title": "SMcVer Function: Change Title"
-      },
-      {
-        "command": "Update-TreeView",
-        "category": "Custom",
-        "title": "Actively updates the tree view",
-        "icon": "$(extensions-refresh)"
+        "view": "smcver.smcverCEX",
+        "contents": "No counter examples available. Click the refresh button to load."
       }
     ],
     "viewsContainers": {
@@ -37,7 +32,7 @@
         {
           "id": "smcver",
           "title": "SMcVer",
-          "icon": "images/icon.svg"
+          "icon": "images/debug.svg"
         }
       ]
     },
@@ -45,21 +40,20 @@
       "smcver": [
         {
           "id": "smcverFunctions",
-          "name": "Functions"
+          "name": "Functions",
+          "css": {
+            "file": "./style/checkboxTreeView.css"
+          }
         },
         {
-          "id": "smcverMore",
-          "name": "More"
+          "id": "smcverCEX",
+          "name": "Counter Examples",
+          "icon": "images/refresh.svg"
         }
       ]
     },
     "menus": {
       "view/title": [
-        {
-          "command": "Update-TreeView",
-          "when": "view == customView",
-          "group": "navigation"
-        }
       ]
     }
   },
@@ -91,6 +85,7 @@
     "webpack-cli": "^5.1.1"
   },
   "dependencies": {
+    "python": "^0.0.4",
     "python-shell": "^5.0.0"
   }
 }
