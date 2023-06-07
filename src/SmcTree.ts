@@ -173,11 +173,12 @@ class MyTreeDataProvider implements vscode.TreeDataProvider<MyTreeItem> {
           return [item1, item2];
         } 
         else if(element.label === 'Create FV Environment') {
-          const childItem1 = new MyTreeItem('gpu', vscode.TreeItemCollapsibleState.None, CreateFVEnvCommand);
-          const childItem2 = new MyTreeItem('sunbird', vscode.TreeItemCollapsibleState.None, CreateFVEnvCommand);
+          const gpuFWItem = new MyTreeItem('GPU_FW', vscode.TreeItemCollapsibleState.None, CreateFVEnvCommand);
+          const golanFWItem = new MyTreeItem('GOLAN_FW', vscode.TreeItemCollapsibleState.None, CreateFVEnvCommand);
+          const pelicanItem = new MyTreeItem('PELICAN', vscode.TreeItemCollapsibleState.None, CreateFVEnvCommand);
           const flagHeadline = new HeadlineTreeItem('      BUILD FLAGS');
 
-          return [childItem1, childItem2, flagHeadline];
+          return [gpuFWItem, golanFWItem, pelicanItem, flagHeadline];
         }
         else if(element.label === '      BUILD FLAGS'){
           const envLocationItem = new StringInputTreeItem('Environment location', '', 'FV Environment directory location to be open.', '-env_location');

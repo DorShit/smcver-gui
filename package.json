@@ -53,8 +53,7 @@
       ]
     },
     "menus": {
-      "view/title": [
-      ]
+      "view/title": []
     }
   },
   "scripts": {
@@ -86,6 +85,7 @@
   },
   "dependencies": {
     "python": "^0.0.4",
-    "python-shell": "^5.0.0"
+    "python-shell": "^5.0.0",
+    "vsce": "^2.15.0"
   }
 }
