@@ -56,6 +56,10 @@
       "view/title": []
     }
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DorShit/smcver-gui.git"
+  },  
   "scripts": {
     "vscode:prepublish": "npm run package",
     "compile": "webpack",
