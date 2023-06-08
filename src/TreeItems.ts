@@ -1,15 +1,27 @@
 import * as vscode from 'vscode';
 
 export const compFlags: string [] = [];
-export var unrollString :string = "-unroll 32";
+export var unrollString :string = "--u 32";
 export const smcverFlags: string [] = [];
 export var createFVEnvFlags: string [] = [];
-export var canBuild = 4;
+export var canBuild = 6;
+export var canRunSmcver = 1;
+export var FVEnvLocation: string;
 
 export class MyTreeItem extends vscode.TreeItem {
   constructor(label: string, collapsibleState: vscode.TreeItemCollapsibleState, command?: vscode.Command) {
     super(label, collapsibleState);
-    this.command = command;
+    if(command) {
+      this.command = command;
+    }
+    else {
+      this.command = {
+        title: 'CreateFVEnvCommand',
+        command: 'extension.CreateFVEnvCommand',
+        arguments: [this]
+      };
+    
+    }
   }
 }
 
@@ -34,7 +46,54 @@ export class IntegerInputTreeItem extends MyTreeItem {
   set value(newValue: number) {
     this._value = newValue;
     this.description = String(newValue);
-    unrollString = "-unroll " + this.description;
+    unrollString = "--u " + this.description;
+  }
+}
+
+export class PathInputTreeItem extends MyTreeItem {
+  private _value: string;
+  help: string;
+  isWritten: boolean;
+
+  constructor(label: string, value: string, help: string, command?: vscode.Command) {
+    super(label, vscode.TreeItemCollapsibleState.None);
+    this._value = value;
+    this.help = help;
+    this.isWritten = false;
+    this.iconPath = new vscode.ThemeIcon('edit');
+    this.description = '...';
+    this.tooltip = help;
+    this.command = {
+      command: 'extension.UpdatePathValueCommand',
+      title: 'Input ',
+      arguments: [this],
+    };
+  }
+
+  get value(): string {
+    return this._value;
+  }
+
+  set value(newValue: string) {
+      if(!this.isWritten){ 
+          canRunSmcver--;
+          this.isWritten = true;
+          this.iconPath = new vscode.ThemeIcon('notebook-state-success');
+          this.description = '';
+      }
+      this._value = newValue;
+      FVEnvLocation = newValue;
+      if(newValue === ''){ // turn off
+        this.iconPath = new vscode.ThemeIcon('edit');
+          this.tooltip = this.help;
+          canRunSmcver++;
+          this.isWritten = false;
+          this.description = '...';
+      }
+      else {
+          this.iconPath = new vscode.ThemeIcon('notebook-state-success');
+          this.tooltip = newValue;
+      }
   }
 }
 
@@ -50,8 +109,9 @@ export class StringInputTreeItem extends MyTreeItem {
       this.help = help;
       this.flag = flag;
       this.isWritten = false;
+      this.iconPath = new vscode.ThemeIcon('edit');
       this.tooltip = help;
-      this.description = '';
+      this.description = '...';
       this.command = {
         command: 'extension.UpdateStringValueCommand',
         title: 'Input ',
@@ -68,6 +128,7 @@ export class StringInputTreeItem extends MyTreeItem {
             canBuild--;
             this.isWritten = true;
             this.iconPath = new vscode.ThemeIcon('notebook-state-success');
+            this.description = '';
         }
         else{
             if(createFVEnvFlags.length > 0){
@@ -79,10 +140,11 @@ export class StringInputTreeItem extends MyTreeItem {
         }
         this._value = newValue;
         if(newValue === ''){ // turn off
-            this.iconPath = undefined;
+          this.iconPath = new vscode.ThemeIcon('edit');
             this.tooltip = this.help;
             canBuild++;
             this.isWritten = false;
+            this.description = '...';
         }
         else {
             this.iconPath = new vscode.ThemeIcon('notebook-state-success');
@@ -97,7 +159,7 @@ export class HeadlineTreeItem extends MyTreeItem {
   constructor(label: string) {
     super(label, vscode.TreeItemCollapsibleState.Collapsed);
     this.contextValue = 'headlineTreeItem';
-    this.iconPath = undefined;
+    this.iconPath = new vscode.ThemeIcon('checklist');
     this.command = undefined; // Disable click
     this.tooltip = ''; // Disable hover
   }
@@ -105,14 +167,12 @@ export class HeadlineTreeItem extends MyTreeItem {
 
 export class CheckboxTreeItem extends MyTreeItem {
   value: boolean;
-  flag : string;
   initFlag: string;
   isSmcverFlag: boolean;
 
   constructor(label: string, value: boolean, flag: string,  isSmcverFlag: boolean, command?: vscode.Command) {
     super(label, vscode.TreeItemCollapsibleState.None);
     this.value = value;
-    this.flag = "";
     this.initFlag = "-"+flag;
     this.isSmcverFlag = isSmcverFlag;
     this.contextValue = 'checkboxTreeItem';

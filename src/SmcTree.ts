@@ -1,53 +1,21 @@
 import * as vscode from 'vscode';
 import * as childProcess from 'child_process';
-import {CreateFVEnvCommand, OnlyCompileFVEnvCommand, CompileRunFVEnvCommand, RunSMcVerCommand} from './Commands';
-import {MyTreeItem, IntegerInputTreeItem, HeadlineTreeItem, CheckboxTreeItem, StringInputTreeItem} from './TreeItems';
-import {compFlags, unrollString, smcverFlags, createFVEnvFlags, canBuild} from './TreeItems';
+import {OnlyCompileFVEnvCommand, RunSMcVerCommand, DummyCommand} from './Commands';
+import {MyTreeItem, IntegerInputTreeItem, HeadlineTreeItem, CheckboxTreeItem, StringInputTreeItem, PathInputTreeItem} from './TreeItems';
+import {compFlags, unrollString, smcverFlags, createFVEnvFlags, canBuild, canRunSmcver, FVEnvLocation} from './TreeItems';
+import {SmakePath, SonlyPath, GB100CreateFVEnvPath, GolanFWCreateFVEnvPath, PelicanCreateFVEnvPath} from './scripts/scriptsPaths';
 
 
 function hasSpace(str: string): boolean {
   return str.includes(' ');
 }
 
-async function promptYesOrNo(): Promise<boolean> {
-  const result = await vscode.window.showInformationMessage(
-    'The Unroll is REALLY BIG. Do you want to proceed?',
-    { modal: true },
-    'Yes',
-    'No'
-  );
-
-  return result === 'Yes';
-}
-
 export class SMCFunction {
-
 	constructor(context: vscode.ExtensionContext) {
       const treeDataProvider = new MyTreeDataProvider();
       vscode.window.registerTreeDataProvider('smcverFunctions', treeDataProvider);
 
-      vscode.commands.registerCommand('extension.CreateFVEnvCommand', (tree: SMCFunction) => {
-        if(canBuild !== 0){
-          const flagLeft = String(canBuild);
-          vscode.window.showErrorMessage('You have ' + flagLeft + ' fields left to fill.');
-        }
-        else {
-            const pythonScriptPath = '../../../../smcver-gui/src/scripts/FvEnvScript.py';
-            const pythonExecutable = 'python'; 
-            let flags = createFVEnvFlags.join(' ') + " ";
-            const command = `${pythonExecutable} "${pythonScriptPath}"`;
-            console.log(flags);
-            childProcess.exec(command, (error, stdout, stderr) => {
-              if (error) {
-                console.error(error);
-                vscode.window.showErrorMessage('Failed to run the Python script.');
-              } else {
-                console.log(stdout);
-                console.error(stderr);
-                vscode.window.showInformationMessage('Python script executed successfully.');
-              }
-            });
-        }});
+      vscode.commands.registerCommand('extension.DummyCommand', () => {});
 
       vscode.commands.registerCommand('extension.toggleCheckbox', (item: CheckboxTreeItem) => {
         item.value = !item.value;
@@ -112,47 +80,114 @@ export class SMCFunction {
         }
       });
 
-      vscode.commands.registerCommand('extension.CompileRunFVEnvCommand', () => {
-        const pythonScriptPath = '../../../../smcver-gui/src/scripts/Smake.py';
-        const pythonExecutable = 'python';
-        let flags = compFlags.join(' ');
-        flags += " -smcverFlags \" ";
-        flags += smcverFlags.join(' ');
-        flags += "\"";
-        flags += " " + unrollString; 
-        const command = `${pythonExecutable} "${pythonScriptPath}"`;
-        childProcess.exec(command, (error, stdout, stderr) => {
+      
+      vscode.commands.registerCommand('extension.UpdatePathValueCommand', async (item: PathInputTreeItem) => {
+        const newValue = await vscode.window.showInputBox({
+          prompt: item.help,
+          value: String(item.value),
+          validateInput: (value: string) => {
+            if(hasSpace(value)){
+              return 'Invalid input. Please enter an valid input.';
+            }
+            const parsedValue = value;
+            return null;
+          }
+        });
+      
+        if (newValue !== undefined) {
+          const tempVal = item.value;
+          item.value = newValue;
+          if(newValue === '' ){ // Remove field 
+            if(tempVal !== ''){
+                vscode.window.showInformationMessage(`Field erased. Please fill again.`);
+            }
+          }
+          else {
+            vscode.window.showInformationMessage(`Field updated!`);
+          }
+          treeDataProvider.refresh(item);
+        }
+      });
+
+      vscode.commands.registerCommand('extension.CreateFVEnvCommand', (item: MyTreeItem) => {
+        if(canBuild !== 0){
+          const flagLeft = String(canBuild);
+          vscode.window.showErrorMessage('You have ' + flagLeft + ' fields left to fill.');
+        }
+        else {
+            var pythonScriptPath;
+            if(item.label === "GPU_FW"){
+                pythonScriptPath = GB100CreateFVEnvPath;
+            }
+            else if(item.label === "GOLAN_FW"){
+                pythonScriptPath = GolanFWCreateFVEnvPath;
+            }
+            else if(item.label === "PELICAN"){
+                pythonScriptPath = PelicanCreateFVEnvPath;
+            }
+            const pythonExecutable = 'python3.7'; 
+            let flags = createFVEnvFlags.join(' ') + " ";
+            const command = `${pythonExecutable} ${pythonScriptPath} ${flags}`;
+            console.log(flags);
+            vscode.window.showInformationMessage('Build in progress..');
+            childProcess.exec(command, (error, stdout, stderr) => {
               if (error) {
                 console.error(error);
                 vscode.window.showErrorMessage('Failed to run the Python script.');
               } else {
                 console.log(stdout);
                 console.error(stderr);
-                console.log(flags);
+                vscode.window.showInformationMessage('Python script executed successfully.');
               }
             });
-          });
+        }});
+
+      vscode.commands.registerCommand('extension.OnlyCompileFVEnvCommand', () => {
+        if(canRunSmcver !== 0){
+            vscode.window.showErrorMessage('Please fill environment location.');
+       }
+       else {
+            let flags = compFlags.join(' ');
+            flags += " --env_location " + FVEnvLocation;
+            const pythonScriptPath = 'python3.7 ' + SmakePath;
+            const command = ` ${pythonScriptPath} ${flags} `;
+            vscode.window.showInformationMessage('Compilation in progress..');
+            console.log(command);
+            childProcess.exec(command, (error, stdout, stderr) => {
+                  if (error) {
+                    console.error(error);
+                    vscode.window.showErrorMessage('Failed to compile.');
+                  } else {
+                    console.log(stdout);
+                    console.error(stderr);
+                    vscode.window.showInformationMessage('Compilation finished.');
+                  }
+                });
+        }});
 
       vscode.commands.registerCommand('extension.RunSMcVerCommand', () => {
-        const pythonScriptPath = '../../../../smcver-gui/src/scripts/FvEnvScript.py';
-        const pythonExecutable = 'python';
-        let flags = compFlags.join(' ');
-        flags += " -smcverFlags \" ";
-        flags += smcverFlags.join(' ');
-        flags += "\"";
-        flags += " " + unrollString; 
-        const command = `${pythonExecutable} "${pythonScriptPath}"`;
-        childProcess.exec(command, (error, stdout, stderr) => {
-              if (error) {
-                console.error(error);
-                vscode.window.showErrorMessage('Failed to run the Python script.');
-              } else {
-                console.log(stdout);
-                console.error(stderr);
-                console.log(flags);
-              }
-            });
-          });
+        if(canRunSmcver !== 0){
+          vscode.window.showErrorMessage('Please fill environment location.');
+        }
+        else {
+          const pythonScriptPath = 'python3.7 ' + SonlyPath;
+          var flags = "--env_location " + FVEnvLocation;
+          flags += " " + smcverFlags.join(' ');
+          flags += " " + unrollString; 
+          const command = `${pythonScriptPath} ${flags}`;
+          vscode.window.showInformationMessage('SMcVer in progress..');
+          console.log(command);
+          childProcess.exec(command, (error, stdout, stderr) => {
+                if (error) {
+                  console.error(error);
+                  vscode.window.showErrorMessage('Failed to run SMcVer.');
+                } else {
+                  console.log(stdout);
+                  console.error(stderr);
+                  vscode.window.showInformationMessage('SMcVer run successfully!');
+                }
+              });
+           }});
   }
 }
 
@@ -167,46 +202,47 @@ class MyTreeDataProvider implements vscode.TreeDataProvider<MyTreeItem> {
     getChildren(element?: MyTreeItem): vscode.ProviderResult<MyTreeItem[]> {
         if (!element) {
           // Root level tree items
-          const item1 = new MyTreeItem('Create FV Environment', vscode.TreeItemCollapsibleState.Collapsed);
-          const item2 = new MyTreeItem('Compilation & Run', vscode.TreeItemCollapsibleState.Collapsed);
+          const item1 = new MyTreeItem('Create FV Environment', vscode.TreeItemCollapsibleState.Collapsed, DummyCommand);
+          const item2 = new MyTreeItem('Compilation & Run', vscode.TreeItemCollapsibleState.Collapsed, DummyCommand);
 
           return [item1, item2];
         } 
         else if(element.label === 'Create FV Environment') {
-          const gpuFWItem = new MyTreeItem('GPU_FW', vscode.TreeItemCollapsibleState.None, CreateFVEnvCommand);
-          const golanFWItem = new MyTreeItem('GOLAN_FW', vscode.TreeItemCollapsibleState.None, CreateFVEnvCommand);
-          const pelicanItem = new MyTreeItem('PELICAN', vscode.TreeItemCollapsibleState.None, CreateFVEnvCommand);
-          const flagHeadline = new HeadlineTreeItem('      BUILD FLAGS');
+          const gpuFWItem = new MyTreeItem('GPU_FW', vscode.TreeItemCollapsibleState.None);
+          const golanFWItem = new MyTreeItem('GOLAN_FW', vscode.TreeItemCollapsibleState.None);
+          const pelicanItem = new MyTreeItem('PELICAN', vscode.TreeItemCollapsibleState.None);
+          const flagHeadline = new HeadlineTreeItem('Build Flags');
 
           return [gpuFWItem, golanFWItem, pelicanItem, flagHeadline];
         }
-        else if(element.label === '      BUILD FLAGS'){
-          const envLocationItem = new StringInputTreeItem('Environment location', '', 'FV Environment directory location to be open.', '-env_location');
-          const envNameItem = new StringInputTreeItem('Environment name', '', 'FV env name that will be open.', '-env_name');
-          const functionNameItem = new StringInputTreeItem('Function name', '', 'The name of the function under test.', '-Function_name');
-          const fileLocationItem = new StringInputTreeItem('File Location', '', 'Exe file location.', '-exe_file');
+        else if(element.label === 'Build Flags'){
+          const envLocationItem = new StringInputTreeItem('Environment location', '', 'FV Environment directory location to be open.', '--env_location');
+          const envNameItem = new StringInputTreeItem('Environment name', '', 'FV env name that will be open.', '--env_name');
+          const functionNameItem = new StringInputTreeItem('Function name', '', 'The name of the function under test.', '--Function_name');
+          const fileLocationItem = new StringInputTreeItem('File Location', '', 'Exe file location.', '--exe_file');
+          const cFileNameItem = new StringInputTreeItem('C File Name', '', 'The name of the C file where the function is.', '--c_file_name');
+          const makeLogLocationItem = new StringInputTreeItem('make.log Location', '', 'The path for the project build log.', '--make_log_location');
 
-          return [envLocationItem, envNameItem, functionNameItem, fileLocationItem];
+          return [envLocationItem, envNameItem, functionNameItem, fileLocationItem, cFileNameItem, makeLogLocationItem];
         }
         else if(element.label === 'Compilation & Run'){
           const runSmcverOnlyItem = new MyTreeItem('Run SMcVer', vscode.TreeItemCollapsibleState.None, RunSMcVerCommand);
           const compileOnlyItem = new MyTreeItem('Compile', vscode.TreeItemCollapsibleState.None, OnlyCompileFVEnvCommand);
-          const smcItem = new MyTreeItem('Compile & Run SMcVer', vscode.TreeItemCollapsibleState.None, CompileRunFVEnvCommand);
-          const flagHeadline = new HeadlineTreeItem('      SMCVER FLAGS');
+          const FVenvLocationItem = new PathInputTreeItem('FV Environment Path', '', 'Absulote path to the FV environment.');
+          const firstCompItem = new CheckboxTreeItem('1st Compilation', false, '-first_cmp y', false);
+          const flagHeadlineItem = new HeadlineTreeItem('SMcVer Flags');
 
-          return [runSmcverOnlyItem, compileOnlyItem, smcItem, flagHeadline];
+          return [compileOnlyItem, runSmcverOnlyItem, FVenvLocationItem, firstCompItem, flagHeadlineItem];
         }
-        else if(element.label === '      SMCVER FLAGS'){
+        else if(element.label === 'SMcVer Flags'){
           const helpFlagItem = new CheckboxTreeItem('help', false, 'h', false);
-          const sanitizedFlagItem = new CheckboxTreeItem('sanitized run', false, 'sanitized', false);
-          const intConversionFlagItem = new CheckboxTreeItem('ignore int conversion', false, 'ignore_int_conversion', false);
-          const smcverFlagsHelpFlagItem = new CheckboxTreeItem('help for smcverFlags', false, 'h', false);
-          const multiCexFlagItem = new CheckboxTreeItem('multiple counter examples', false, 'multiple_cex', true);
-          const noUnwindFlagItem = new CheckboxTreeItem('ignore unroll asserts', false, 'no-unwind-assert', true);
-          const disableMemoryTestFlagItem = new CheckboxTreeItem('disable rbw asserts', false, 'disableMemoryTest', true);
+          const smcverFlagsHelpFlagItem = new CheckboxTreeItem('help for smcverFlags', false, '-h', true);
+          const multiCexFlagItem = new CheckboxTreeItem('multiple counter examples', false, '-multiple_cex', true);
+          const noUnwindFlagItem = new CheckboxTreeItem('ignore unroll asserts', false, '-no-unwind-assert', true);
+          const disableMemoryTestFlagItem = new CheckboxTreeItem('disable rbw asserts', false, '-disableMemoryTest', true);
           const unrollItem = new IntegerInputTreeItem('Unroll', 32);
 
-          return [helpFlagItem, sanitizedFlagItem, intConversionFlagItem, smcverFlagsHelpFlagItem, multiCexFlagItem, noUnwindFlagItem, disableMemoryTestFlagItem, unrollItem];
+          return [helpFlagItem, smcverFlagsHelpFlagItem, multiCexFlagItem, noUnwindFlagItem, disableMemoryTestFlagItem, unrollItem];
           
         }
         return null;
