@@ -4,7 +4,7 @@
   "description": "Help developers use SMcVer",
   "version": "0.0.1",
   "publisher": "Dor Shitrit",
-  "icon": "images/logo.png",
+  "icon": "images/SMcVerLogo.jpg",
   "engines": {
     "vscode": "^1.78.0"
   },
