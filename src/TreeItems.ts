@@ -61,7 +61,7 @@ export class PathInputTreeItem extends MyTreeItem {
     this.help = help;
     this.isWritten = false;
     this.iconPath = new vscode.ThemeIcon('edit');
-    this.description = '...';
+    this.description = '...'
     this.tooltip = help;
     this.command = {
       command: 'extension.UpdatePathValueCommand',

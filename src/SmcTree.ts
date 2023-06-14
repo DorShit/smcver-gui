@@ -3,7 +3,7 @@ import * as childProcess from 'child_process';
 import {OnlyCompileFVEnvCommand, RunSMcVerCommand, DummyCommand} from './Commands';
 import {MyTreeItem, IntegerInputTreeItem, HeadlineTreeItem, CheckboxTreeItem, StringInputTreeItem, PathInputTreeItem} from './TreeItems';
 import {compFlags, unrollString, smcverFlags, createFVEnvFlags, canBuild, canRunSmcver, FVEnvLocation} from './TreeItems';
-import {SmakePath, SonlyPath, GB100CreateFVEnvPath, GolanFWCreateFVEnvPath, PelicanCreateFVEnvPath} from './scripts/scriptsPaths';
+import {SmakePath, SonlyPath, GB100CreateFVEnvPath, GolanFWCreateFVEnvPath, PelicanCreateFVEnvPath} from './scripts/scriptsPaths'
 
 
 function hasSpace(str: string): boolean {
@@ -129,8 +129,11 @@ export class SMCFunction {
             let flags = createFVEnvFlags.join(' ') + " ";
             const command = `${pythonExecutable} ${pythonScriptPath} ${flags}`;
             console.log(flags);
+
+            const outputChannel = vscode.window.createOutputChannel('Create Formal Verification Environment log');
+            outputChannel.show();
             vscode.window.showInformationMessage('Build in progress..');
-            childProcess.exec(command, (error, stdout, stderr) => {
+            const child = childProcess.exec(command, (error, stdout, stderr) => {
               if (error) {
                 console.error(error);
                 vscode.window.showErrorMessage('Failed to run the Python script.');
@@ -140,30 +143,58 @@ export class SMCFunction {
                 vscode.window.showInformationMessage('Python script executed successfully.');
               }
             });
+            if(child.stdout !== null){
+              child.stdout.on('data', (data) => {
+                console.log(data);
+                outputChannel.append(data.toString());
+            });
+          }
+          if(child.stderr !== null){
+             child.stderr.on('data', (data) => {
+                console.error(data);
+                outputChannel.append(data.toString());
+            });
+          }
         }});
 
-      vscode.commands.registerCommand('extension.OnlyCompileFVEnvCommand', () => {
-        if(canRunSmcver !== 0){
+        vscode.commands.registerCommand('extension.OnlyCompileFVEnvCommand', () => {
+          if (canRunSmcver !== 0) {
             vscode.window.showErrorMessage('Please fill environment location.');
-       }
-       else {
+          } else {
             let flags = compFlags.join(' ');
             flags += " --env_location " + FVEnvLocation;
             const pythonScriptPath = 'python3.7 ' + SmakePath;
             const command = ` ${pythonScriptPath} ${flags} `;
             vscode.window.showInformationMessage('Compilation in progress..');
             console.log(command);
-            childProcess.exec(command, (error, stdout, stderr) => {
-                  if (error) {
-                    console.error(error);
-                    vscode.window.showErrorMessage('Failed to compile.');
-                  } else {
-                    console.log(stdout);
-                    console.error(stderr);
-                    vscode.window.showInformationMessage('Compilation finished.');
-                  }
-                });
-        }});
+        
+            const outputChannel = vscode.window.createOutputChannel('Compilation log');
+            outputChannel.show();
+        
+            const child = childProcess.exec(command, (error, stdout, stderr) => {
+              if (error) {
+                console.error(error);
+                vscode.window.showErrorMessage('Failed to compile.');
+              } else {
+                console.log(stdout);
+                console.error(stderr);
+                vscode.window.showInformationMessage('Compilation finished.');
+              }
+            });
+            if(child.stdout !== null){
+                child.stdout.on('data', (data) => {
+                  console.log(data);
+                  outputChannel.append(data.toString());
+              });
+            }
+            if(child.stderr !== null){
+               child.stderr.on('data', (data) => {
+                  console.error(data);
+                  outputChannel.append(data.toString());
+            });
+          }
+          }
+        });
 
       vscode.commands.registerCommand('extension.RunSMcVerCommand', () => {
         if(canRunSmcver !== 0){
@@ -177,7 +208,10 @@ export class SMCFunction {
           const command = `${pythonScriptPath} ${flags}`;
           vscode.window.showInformationMessage('SMcVer in progress..');
           console.log(command);
-          childProcess.exec(command, (error, stdout, stderr) => {
+
+          const outputChannel = vscode.window.createOutputChannel('SMcVer Log');
+          outputChannel.show();
+          const child = childProcess.exec(command, (error, stdout, stderr) => {
                 if (error) {
                   console.error(error);
                   vscode.window.showErrorMessage('Failed to run SMcVer.');
@@ -187,7 +221,20 @@ export class SMCFunction {
                   vscode.window.showInformationMessage('SMcVer run successfully!');
                 }
               });
-           }});
+
+          if(child.stdout !== null){
+            child.stdout.on('data', (data) => {
+              console.log(data);
+              outputChannel.append(data.toString());
+          });
+        }
+        if(child.stderr !== null){
+            child.stderr.on('data', (data) => {
+              console.error(data);
+              outputChannel.append(data.toString());
+        });
+        }
+        }});
   }
 }
 
