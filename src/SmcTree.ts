@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
 import * as childProcess from 'child_process';
-import {OnlyCompileFVEnvCommand, RunSMcVerCommand, DummyCommand} from './Commands';
-import {MyTreeItem, IntegerInputTreeItem, HeadlineTreeItem, CheckboxTreeItem, StringInputTreeItem, PathInputTreeItem} from './TreeItems';
-import {compFlags, unrollString, smcverFlags, createFVEnvFlags, canBuild, canRunSmcver, FVEnvLocation} from './TreeItems';
-import {SmakePath, SonlyPath, GB100CreateFVEnvPath, GolanFWCreateFVEnvPath, PelicanCreateFVEnvPath} from './scripts/scriptsPaths'
+import {onlyCompileFVEnvCommand, runSMcVerCommand, dummyCommand, cloneCommand, createFVCommand} from './Commands';
+import {MyTreeItem, IntegerInputTreeItem, HeadlineTreeItem, CheckboxTreeItem, StringInputTreeItem, OptionInputTreeItem} from './TreeItems';
+import {compFlags, unrollString, smcverFlags, canIDoStuff, flagList, Action} from './Variables';
+import {sMakePath, sOnlyPath, clonePath, gb100CreateFVEnvPath, golanFWCreateFVEnvPath, pelicanCreateFVEnvPath} from './scripts/scriptsPaths';
 
 
 function hasSpace(str: string): boolean {
@@ -52,6 +52,22 @@ export class SMCFunction {
         }
       });
 
+      vscode.commands.registerCommand('extension.UpdateOptionValueCommand', async (item: OptionInputTreeItem) => {
+        
+        const chosenOption = await vscode.window.showQuickPick(item.options, {
+          placeHolder: 'Select an option',
+        });
+      
+        if (chosenOption) {
+          item.value = chosenOption;
+          item.description = chosenOption;
+        } else {
+          // User canceled the selection
+          console.log('Selection canceled');
+        }
+        treeDataProvider.refresh(item);
+      });
+
       vscode.commands.registerCommand('extension.UpdateStringValueCommand', async (item: StringInputTreeItem) => {
         const newValue = await vscode.window.showInputBox({
           prompt: item.help,
@@ -80,36 +96,8 @@ export class SMCFunction {
         }
       });
 
-      
-      vscode.commands.registerCommand('extension.UpdatePathValueCommand', async (item: PathInputTreeItem) => {
-        const newValue = await vscode.window.showInputBox({
-          prompt: item.help,
-          value: String(item.value),
-          validateInput: (value: string) => {
-            if(hasSpace(value)){
-              return 'Invalid input. Please enter an valid input.';
-            }
-            const parsedValue = value;
-            return null;
-          }
-        });
-      
-        if (newValue !== undefined) {
-          const tempVal = item.value;
-          item.value = newValue;
-          if(newValue === '' ){ // Remove field 
-            if(tempVal !== ''){
-                vscode.window.showInformationMessage(`Field erased. Please fill again.`);
-            }
-          }
-          else {
-            vscode.window.showInformationMessage(`Field updated!`);
-          }
-          treeDataProvider.refresh(item);
-        }
-      });
-
       vscode.commands.registerCommand('extension.CreateFVEnvCommand', (item: MyTreeItem) => {
+        var canBuild = canIDoStuff[Action.build];
         if(canBuild !== 0){
           const flagLeft = String(canBuild);
           vscode.window.showErrorMessage('You have ' + flagLeft + ' fields left to fill.');
@@ -117,16 +105,16 @@ export class SMCFunction {
         else {
             var pythonScriptPath;
             if(item.label === "GPU_FW"){
-                pythonScriptPath = GB100CreateFVEnvPath;
+                pythonScriptPath = gb100CreateFVEnvPath;
             }
             else if(item.label === "GOLAN_FW"){
-                pythonScriptPath = GolanFWCreateFVEnvPath;
+                pythonScriptPath = golanFWCreateFVEnvPath;
             }
             else if(item.label === "PELICAN"){
-                pythonScriptPath = PelicanCreateFVEnvPath;
+                pythonScriptPath = pelicanCreateFVEnvPath;
             }
             const pythonExecutable = 'python3.7'; 
-            let flags = createFVEnvFlags.join(' ') + " ";
+            let flags = flagList[Action.build].join(' ') + " ";
             const command = `${pythonExecutable} ${pythonScriptPath} ${flags}`;
             console.log(flags);
 
@@ -157,13 +145,54 @@ export class SMCFunction {
           }
         }});
 
+        vscode.commands.registerCommand('extension.CloneCommand', () => {
+          var canClone = canIDoStuff[Action.clone];
+          if (canClone !== 0) { 
+            const flagLeft = String(canClone);
+            vscode.window.showErrorMessage('You have ' + flagLeft + ' fields left to fill.');
+          } else {
+            let flags = flagList[Action.clone].join(' ') + " ";
+            const pythonScriptPath = 'python3.7 ' + clonePath;
+            const command = ` ${pythonScriptPath} ${flags} `;
+            vscode.window.showInformationMessage('Cloning in progress..');
+            console.log(command);
+        
+            const outputChannel = vscode.window.createOutputChannel('Clone log');
+            outputChannel.show();
+        
+            const child = childProcess.exec(command, (error, stdout, stderr) => {
+              if (error) {
+                console.error(error);
+                vscode.window.showErrorMessage('Failed to clone.');
+              } else {
+                console.log(stdout);
+                console.error(stderr);
+                vscode.window.showInformationMessage('Cloning finished.');
+              }
+            });
+            if(child.stdout !== null){
+                child.stdout.on('data', (data) => {
+                  console.log(data);
+                  outputChannel.append(data.toString());
+              });
+            }
+            if(child.stderr !== null){
+               child.stderr.on('data', (data) => {
+                  console.error(data);
+                  outputChannel.append(data.toString());
+            });
+          }
+          }
+        });
+
         vscode.commands.registerCommand('extension.OnlyCompileFVEnvCommand', () => {
+          var canRunSmcver = canIDoStuff[Action.run];
           if (canRunSmcver !== 0) {
             vscode.window.showErrorMessage('Please fill environment location.');
           } else {
             let flags = compFlags.join(' ');
-            flags += " --env_location " + FVEnvLocation;
-            const pythonScriptPath = 'python3.7 ' + SmakePath;
+            flags += flagList[Action.run][0];
+            const pythonScriptPath = 'python3.7 ' + sMakePath;
             const command = ` ${pythonScriptPath} ${flags} `;
             vscode.window.showInformationMessage('Compilation in progress..');
             console.log(command);
@@ -197,14 +226,15 @@ export class SMCFunction {
         });
 
       vscode.commands.registerCommand('extension.RunSMcVerCommand', () => {
+        var canRunSmcver = canIDoStuff[Action.run];
         if(canRunSmcver !== 0){
           vscode.window.showErrorMessage('Please fill environment location.');
         }
         else {
-          const pythonScriptPath = 'python3.7 ' + SonlyPath;
-          var flags = "--env_location " + FVEnvLocation;
+          const pythonScriptPath = 'python3.7 ' + sOnlyPath;
+          var flags = flagList[Action.run][0];
           flags += " " + smcverFlags.join(' ');
-          flags += " " + unrollString; 
+          flags += " " + unrollString[0]; 
           const command = `${pythonScriptPath} ${flags}`;
           vscode.window.showInformationMessage('SMcVer in progress..');
           console.log(command);
@@ -249,37 +279,55 @@ class MyTreeDataProvider implements vscode.TreeDataProvider<MyTreeItem> {
     getChildren(element?: MyTreeItem): vscode.ProviderResult<MyTreeItem[]> {
         if (!element) {
           // Root level tree items
-          const item1 = new MyTreeItem('Create FV Environment', vscode.TreeItemCollapsibleState.Collapsed, DummyCommand);
-          const item2 = new MyTreeItem('Compilation & Run', vscode.TreeItemCollapsibleState.Collapsed, DummyCommand);
+          const clone = new MyTreeItem('Clone', vscode.TreeItemCollapsibleState.Collapsed);
+          const createFVEnv = new MyTreeItem('Create FV Environment', vscode.TreeItemCollapsibleState.Collapsed);
+          const compileRun = new MyTreeItem('Compilation & Run', vscode.TreeItemCollapsibleState.Collapsed);
 
-          return [item1, item2];
-        } 
+          return [clone, createFVEnv, compileRun];
+        }
+        else if(element.label === 'Clone') {
+          const cloneItem = new MyTreeItem('Clone me!', vscode.TreeItemCollapsibleState.None, cloneCommand);
+          const cloneFlagHeadline = new HeadlineTreeItem('Clone Flags');
+
+          return [cloneItem, cloneFlagHeadline];
+        }
+        else if(element.label === 'Clone Flags'){
+          const clonePathItem = new StringInputTreeItem('Directory Path', '', 'Path to clone directory location.', '--clone_path');
+          const optionSystem = ['Switch', 'GPU', 'NIC'];
+          const systemNameItem = new OptionInputTreeItem('System Name', 'Choose the system.', optionSystem, '--system_name');
+          const optionsProject = ['arava', 'gb100', 'carmel', 'sunbird'];
+          const projectNameItem = new OptionInputTreeItem('Project Name', 'Choose the project to compile.', optionsProject, '--project_name');
+          const fwMachineItem = new StringInputTreeItem('FW Machine Name', '', 'The name of the fw machine you want to connect.', '--fw_machine');
+          const folderNamenItem = new StringInputTreeItem('Folder Name', '', 'The name of the clone folder.', '--folder_name');
+
+          return  [clonePathItem, systemNameItem, projectNameItem, fwMachineItem, folderNamenItem];
+        }
         else if(element.label === 'Create FV Environment') {
-          const gpuFWItem = new MyTreeItem('GPU_FW', vscode.TreeItemCollapsibleState.None);
-          const golanFWItem = new MyTreeItem('GOLAN_FW', vscode.TreeItemCollapsibleState.None);
-          const pelicanItem = new MyTreeItem('PELICAN', vscode.TreeItemCollapsibleState.None);
+          const gpuFWItem = new MyTreeItem('GPU_FW', vscode.TreeItemCollapsibleState.None, createFVCommand);
+          const golanFWItem = new MyTreeItem('GOLAN_FW', vscode.TreeItemCollapsibleState.None, createFVCommand);
+          const pelicanItem = new MyTreeItem('PELICAN', vscode.TreeItemCollapsibleState.None, createFVCommand);
           const flagHeadline = new HeadlineTreeItem('Build Flags');
 
           return [gpuFWItem, golanFWItem, pelicanItem, flagHeadline];
         }
         else if(element.label === 'Build Flags'){
-          const envLocationItem = new StringInputTreeItem('Environment location', '', 'FV Environment directory location to be open.', '--env_location');
-          const envNameItem = new StringInputTreeItem('Environment name', '', 'FV env name that will be open.', '--env_name');
-          const functionNameItem = new StringInputTreeItem('Function name', '', 'The name of the function under test.', '--Function_name');
-          const fileLocationItem = new StringInputTreeItem('File Location', '', 'Exe file location.', '--exe_file');
-          const cFileNameItem = new StringInputTreeItem('C File Name', '', 'The name of the C file where the function is.', '--c_file_name');
-          const makeLogLocationItem = new StringInputTreeItem('make.log Location', '', 'The path for the project build log.', '--make_log_location');
+          const envLocationItem = new StringInputTreeItem('Environment location', '', 'FV environment directory location to be open.', '--env_location', Action.build);
+          const envNameItem = new StringInputTreeItem('Environment name', '', 'FV environment name that will be open.', '--env_name', Action.build);
+          const functionNameItem = new StringInputTreeItem('Function name', '', 'The name of the function under test.', '--Function_name', Action.build);
+          const fileLocationItem = new StringInputTreeItem('File Location', '', 'Exe file location.', '--exe_file', Action.build);
+          const cFileNameItem = new StringInputTreeItem('C File Name', '', 'The name of the C file where the function is.', '--c_file_name', Action.build);
+          const makeLogLocationItem = new StringInputTreeItem('make.log Location', '', 'The path for the project build log.', '--make_log_location', Action.build);
 
           return [envLocationItem, envNameItem, functionNameItem, fileLocationItem, cFileNameItem, makeLogLocationItem];
         }
         else if(element.label === 'Compilation & Run'){
-          const runSmcverOnlyItem = new MyTreeItem('Run SMcVer', vscode.TreeItemCollapsibleState.None, RunSMcVerCommand);
-          const compileOnlyItem = new MyTreeItem('Compile', vscode.TreeItemCollapsibleState.None, OnlyCompileFVEnvCommand);
-          const FVenvLocationItem = new PathInputTreeItem('FV Environment Path', '', 'Absulote path to the FV environment.');
+          const runSmcverOnlyItem = new MyTreeItem('Run SMcVer', vscode.TreeItemCollapsibleState.None, runSMcVerCommand);
+          const compileOnlyItem = new MyTreeItem('Compile', vscode.TreeItemCollapsibleState.None, onlyCompileFVEnvCommand);
+          const fVenvLocationItem = new StringInputTreeItem('FV Environment Path', '', 'Absulote path to the FV environment.', '--env_location');
           const firstCompItem = new CheckboxTreeItem('1st Compilation', false, '-first_cmp y', false);
           const flagHeadlineItem = new HeadlineTreeItem('SMcVer Flags');
 
-          return [compileOnlyItem, runSmcverOnlyItem, FVenvLocationItem, firstCompItem, flagHeadlineItem];
+          return [compileOnlyItem, runSmcverOnlyItem, fVenvLocationItem, firstCompItem, flagHeadlineItem];
         }
         else if(element.label === 'SMcVer Flags'){
           const helpFlagItem = new CheckboxTreeItem('help', false, 'h', false);

@@ -1,18 +1,28 @@
 import * as vscode from 'vscode';
 
-export const OnlyCompileFVEnvCommand: vscode.Command = {
+export const onlyCompileFVEnvCommand: vscode.Command = {
     title: 'OnlyCompileFVEnvCommand',
     command: 'extension.OnlyCompileFVEnvCommand',
   };
 
-export const RunSMcVerCommand: vscode.Command = {
+export const runSMcVerCommand: vscode.Command = {
     title: 'RunSMcVerCommand',
     command: 'extension.RunSMcVerCommand',
   };
 
-export const DummyCommand: vscode.Command = {
+  export const cloneCommand: vscode.Command = {
+    title: 'CloneCommand',
+    command: 'extension.CloneCommand',
+  };
+
+  export const createFVCommand: vscode.Command = {
+    title: 'CreateFVCommand',
+    command: 'extension.CreateFVEnvCommand'
+  }
+
+export const dummyCommand: vscode.Command = {
     title: 'DummyCommand',
     command: 'extension.DummyCommand',
   };
 
-  module.exports = {OnlyCompileFVEnvCommand, RunSMcVerCommand, DummyCommand};
+  module.exports = {onlyCompileFVEnvCommand, runSMcVerCommand, dummyCommand, cloneCommand, createFVCommand};

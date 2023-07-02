@@ -1,27 +1,66 @@
 import * as vscode from 'vscode';
 
-export const compFlags: string [] = [];
-export var unrollString :string = "--u 32";
-export const smcverFlags: string [] = [];
-export var createFVEnvFlags: string [] = [];
-export var canBuild = 6;
-export var canRunSmcver = 1;
-export var FVEnvLocation: string;
+import {compFlags, unrollString, smcverFlags, createFVEnvFlags, canIDoStuff, flagList, Action} from './Variables';
+import {dummyCommand} from './Commands';
 
 export class MyTreeItem extends vscode.TreeItem {
-  constructor(label: string, collapsibleState: vscode.TreeItemCollapsibleState, command?: vscode.Command) {
+  public func: Action;
+  constructor(label: string, collapsibleState: vscode.TreeItemCollapsibleState, command?: vscode.Command, func?: Action) {
     super(label, collapsibleState);
+    if(func){
+      this.func = func;
+    }
+    else {
+      this.func = Action.clone;
+    }
     if(command) {
       this.command = command;
     }
     else {
-      this.command = {
-        title: 'CreateFVEnvCommand',
-        command: 'extension.CreateFVEnvCommand',
-        arguments: [this]
-      };
-    
+      this.command = dummyCommand;
     }
+  }
+}
+
+
+export class OptionInputTreeItem extends MyTreeItem {
+  private _value: string;
+  public options: string[];
+  public flag: string;
+
+  constructor(label: string, help: string, options: string[], flag: string, func?: Action) {
+    super(label, vscode.TreeItemCollapsibleState.None, undefined, func);
+    this._value = "";
+    this.flag = flag;
+    this.options = options;
+    this.description = '...';
+    this.tooltip = help;
+    this.iconPath = new vscode.ThemeIcon('edit');
+    this.command = {
+      command: 'extension.UpdateOptionValueCommand',
+      title: 'Option Command',
+      arguments: [this],
+    };
+  }
+
+  get value(): string {
+    return this._value;
+  }
+
+  set value(newValue: string) {
+    this._value = newValue;
+    this.description = newValue;
+    this.iconPath = new vscode.ThemeIcon('notebook-state-success');
+    this.tooltip = newValue;
+    if(flagList[this.func].length > 0){
+      const indexToRemove = createFVEnvFlags.indexOf(this.flag + " " + this._value);
+      if (indexToRemove !== -1) {
+        flagList[this.func].splice(indexToRemove, 1);
+          canIDoStuff[this.func]++;
+      }
+    } 
+    flagList[this.func].push(this.flag + " " + this._value);
+    canIDoStuff[this.func]--;
   }
 }
 
@@ -46,54 +85,7 @@ export class IntegerInputTreeItem extends MyTreeItem {
   set value(newValue: number) {
     this._value = newValue;
     this.description = String(newValue);
-    unrollString = "--u " + this.description;
-  }
-}
-
-export class PathInputTreeItem extends MyTreeItem {
-  private _value: string;
-  help: string;
-  isWritten: boolean;
-
-  constructor(label: string, value: string, help: string, command?: vscode.Command) {
-    super(label, vscode.TreeItemCollapsibleState.None);
-    this._value = value;
-    this.help = help;
-    this.isWritten = false;
-    this.iconPath = new vscode.ThemeIcon('edit');
-    this.description = '...'
-    this.tooltip = help;
-    this.command = {
-      command: 'extension.UpdatePathValueCommand',
-      title: 'Input ',
-      arguments: [this],
-    };
-  }
-
-  get value(): string {
-    return this._value;
-  }
-
-  set value(newValue: string) {
-      if(!this.isWritten){ 
-          canRunSmcver--;
-          this.isWritten = true;
-          this.iconPath = new vscode.ThemeIcon('notebook-state-success');
-          this.description = '';
-      }
-      this._value = newValue;
-      FVEnvLocation = newValue;
-      if(newValue === ''){ // turn off
-        this.iconPath = new vscode.ThemeIcon('edit');
-          this.tooltip = this.help;
-          canRunSmcver++;
-          this.isWritten = false;
-          this.description = '...';
-      }
-      else {
-          this.iconPath = new vscode.ThemeIcon('notebook-state-success');
-          this.tooltip = newValue;
-      }
+    unrollString[0] = "--u " + this.description;
   }
 }
 
@@ -103,8 +95,8 @@ export class StringInputTreeItem extends MyTreeItem {
     flag: string;
     isWritten: boolean;
   
-    constructor(label: string, value: string, help: string, flag: string, command?: vscode.Command) {
-      super(label, vscode.TreeItemCollapsibleState.None);
+    constructor(label: string, value: string, help: string, flag: string, func?: Action) {
+      super(label, vscode.TreeItemCollapsibleState.None, undefined, func);
       this._value = value;
       this.help = help;
       this.flag = flag;
@@ -125,16 +117,16 @@ export class StringInputTreeItem extends MyTreeItem {
   
     set value(newValue: string) {
         if(!this.isWritten){ 
-            canBuild--;
+            canIDoStuff[this.func]--;
             this.isWritten = true;
             this.iconPath = new vscode.ThemeIcon('notebook-state-success');
             this.description = '';
         }
         else{
-            if(createFVEnvFlags.length > 0){
-                const indexToRemove = createFVEnvFlags.indexOf(this.flag + " " + this._value);
+            if(flagList[this.func].length > 0){
+                const indexToRemove = flagList[this.func].indexOf(this.flag + " " + this._value);
                 if (indexToRemove !== -1) {
-                    createFVEnvFlags.splice(indexToRemove, 1);
+                  flagList[this.func].splice(indexToRemove, 1);
                 }
             }
         }
@@ -142,14 +134,14 @@ export class StringInputTreeItem extends MyTreeItem {
         if(newValue === ''){ // turn off
           this.iconPath = new vscode.ThemeIcon('edit');
             this.tooltip = this.help;
-            canBuild++;
+            canIDoStuff[this.func]++;
             this.isWritten = false;
             this.description = '...';
         }
         else {
             this.iconPath = new vscode.ThemeIcon('notebook-state-success');
             this.tooltip = newValue;
-            createFVEnvFlags.push(this.flag + " " + newValue);
+            flagList[this.func].push(this.flag + " " + newValue);
         }
     }
   }

@@ -1,10 +1,11 @@
 import { exec } from 'child_process';
 
-export const SmakePath = "/swgwork/nirri/fv-scripts/FVCompile.py";
-export const SonlyPath ="/swgwork/nirri/fv-scripts/SmcverRun.py";
-export const GB100CreateFVEnvPath = "/swgwork/nirri/fv-scripts/FVBuildGB100.py";
-export const GolanFWCreateFVEnvPath = "/swgwork/nirri/fv-scripts/FVBuildGB100.py";
-export const PelicanCreateFVEnvPath = "/swgwork/nirri/fv-scripts/FVBuildGB100.py";
+export const sMakePath = "/swgwork/nirri/fv-scripts/FVCompile.py";
+export const sOnlyPath ="/swgwork/nirri/fv-scripts/SmcverRun.py";
+export const clonePath = "/swgwork/nirri/fv-scripts/FVClone.py";
+export const gb100CreateFVEnvPath = "/swgwork/nirri/fv-scripts/FVBuildGB100.py";
+export const golanFWCreateFVEnvPath = "/swgwork/nirri/fv-scripts/FVBuildGB100.py";
+export const pelicanCreateFVEnvPath = "/swgwork/nirri/fv-scripts/FVBuildGB100.py";
 
 export function pullFromGitRepo() {
     const gitRepoPath = 'https://gitlab-master.nvidia.com/fv-fw/fv-scripts.git'; 

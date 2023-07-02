@@ -1,0 +1,19 @@
+export const compFlags: string [] = [];
+export var unrollString :string[] = ["--u 32"];
+export const smcverFlags: string [] = [];
+export var createFVEnvFlags: string [] = [];
+export var cloneFlags: string [] = [];
+export var runFlags: string[] = [];
+export var flagList: string[][] = [cloneFlags, createFVEnvFlags, runFlags];
+
+export var canBuild = 6;
+export var canClone = 5;
+export var canRunSmcver = 1;
+export var canIDoStuff: number[] = [canClone, canBuild, canRunSmcver];
+
+
+export  enum Action {
+    clone = 0,
+    build = 1,
+    run = 2
+  }
