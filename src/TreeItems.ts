@@ -5,7 +5,8 @@ import {dummyCommand} from './Commands';
 
 export class MyTreeItem extends vscode.TreeItem {
   public func: Action;
-  constructor(label: string, collapsibleState: vscode.TreeItemCollapsibleState, command?: vscode.Command, func?: Action) {
+  public isOptinal: boolean;
+  constructor(label: string, collapsibleState: vscode.TreeItemCollapsibleState, command?: vscode.Command, func?: Action, isOptinal?: boolean) {
     super(label, collapsibleState);
     if(func){
       this.func = func;
@@ -13,11 +14,18 @@ export class MyTreeItem extends vscode.TreeItem {
     else {
       this.func = Action.clone;
     }
+
     if(command) {
       this.command = command;
     }
     else {
       this.command = dummyCommand;
+    }
+    if(isOptinal){
+      this.isOptinal = isOptinal;
+    }
+    else{
+      this.isOptinal = false;
     }
   }
 }
@@ -28,8 +36,8 @@ export class OptionInputTreeItem extends MyTreeItem {
   public options: string[];
   public flag: string;
 
-  constructor(label: string, help: string, options: string[], flag: string, func?: Action) {
-    super(label, vscode.TreeItemCollapsibleState.None, undefined, func);
+  constructor(label: string, help: string, options: string[], flag: string, func?: Action, isOptinal?: boolean) {
+    super(label, vscode.TreeItemCollapsibleState.None, undefined, func, isOptinal);
     this._value = "";
     this.flag = flag;
     this.options = options;
@@ -56,11 +64,15 @@ export class OptionInputTreeItem extends MyTreeItem {
       const indexToRemove = createFVEnvFlags.indexOf(this.flag + " " + this._value);
       if (indexToRemove !== -1) {
         flagList[this.func].splice(indexToRemove, 1);
-          canIDoStuff[this.func]++;
+        if(this.isOptinal === false){
+            canIDoStuff[this.func]++;
+        }
       }
     } 
     flagList[this.func].push(this.flag + " " + this._value);
-    canIDoStuff[this.func]--;
+    if(this.isOptinal === false){
+      canIDoStuff[this.func]--;
+    }
   }
 }
 
@@ -95,8 +107,8 @@ export class StringInputTreeItem extends MyTreeItem {
     flag: string;
     isWritten: boolean;
   
-    constructor(label: string, value: string, help: string, flag: string, func?: Action) {
-      super(label, vscode.TreeItemCollapsibleState.None, undefined, func);
+    constructor(label: string, value: string, help: string, flag: string, func?: Action, isOptinal?: boolean) {
+      super(label, vscode.TreeItemCollapsibleState.None, undefined, func, isOptinal);
       this._value = value;
       this.help = help;
       this.flag = flag;
@@ -117,10 +129,12 @@ export class StringInputTreeItem extends MyTreeItem {
   
     set value(newValue: string) {
         if(!this.isWritten){ 
+          if(this.isOptinal === false){
             canIDoStuff[this.func]--;
-            this.isWritten = true;
-            this.iconPath = new vscode.ThemeIcon('notebook-state-success');
-            this.description = '';
+          }
+          this.isWritten = true;
+          this.iconPath = new vscode.ThemeIcon('notebook-state-success');
+          this.description = '';
         }
         else{
             if(flagList[this.func].length > 0){
@@ -134,7 +148,9 @@ export class StringInputTreeItem extends MyTreeItem {
         if(newValue === ''){ // turn off
           this.iconPath = new vscode.ThemeIcon('edit');
             this.tooltip = this.help;
-            canIDoStuff[this.func]++;
+            if(this.isOptinal === false){
+              canIDoStuff[this.func]++;
+            }
             this.isWritten = false;
             this.description = '...';
         }

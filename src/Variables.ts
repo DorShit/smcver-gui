@@ -7,7 +7,7 @@ export var runFlags: string[] = [];
 export var flagList: string[][] = [cloneFlags, createFVEnvFlags, runFlags];
 
 export var canBuild = 6;
-export var canClone = 5;
+export var canClone = 2;
 export var canRunSmcver = 1;
 export var canIDoStuff: number[] = [canClone, canBuild, canRunSmcver];
 

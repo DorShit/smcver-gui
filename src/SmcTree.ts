@@ -296,9 +296,9 @@ class MyTreeDataProvider implements vscode.TreeDataProvider<MyTreeItem> {
           const optionSystem = ['Switch', 'GPU', 'NIC'];
           const systemNameItem = new OptionInputTreeItem('System Name', 'Choose the system.', optionSystem, '--system_name');
           const optionsProject = ['arava', 'gb100', 'carmel', 'sunbird'];
-          const projectNameItem = new OptionInputTreeItem('Project Name', 'Choose the project to compile.', optionsProject, '--project_name');
-          const fwMachineItem = new StringInputTreeItem('FW Machine Name', '', 'The name of the fw machine you want to connect.', '--fw_machine');
-          const folderNamenItem = new StringInputTreeItem('Folder Name', '', 'The name of the clone folder.', '--folder_name');
+          const projectNameItem = new OptionInputTreeItem('Project Name', 'Choose the project to compile.', optionsProject, '--project_name', Action.clone, true);
+          const fwMachineItem = new StringInputTreeItem('FW Machine Name', '', 'The name of the fw machine you want to connect.', '--fw_machine', Action.clone, true);
+          const folderNamenItem = new StringInputTreeItem('Folder Name', '', 'The name of the clone folder.', '--folder_name', Action.clone, true);
 
           return  [clonePathItem, systemNameItem, projectNameItem, fwMachineItem, folderNamenItem];
         }
@@ -323,7 +323,7 @@ class MyTreeDataProvider implements vscode.TreeDataProvider<MyTreeItem> {
         else if(element.label === 'Compilation & Run'){
           const runSmcverOnlyItem = new MyTreeItem('Run SMcVer', vscode.TreeItemCollapsibleState.None, runSMcVerCommand);
           const compileOnlyItem = new MyTreeItem('Compile', vscode.TreeItemCollapsibleState.None, onlyCompileFVEnvCommand);
-          const fVenvLocationItem = new StringInputTreeItem('FV Environment Path', '', 'Absulote path to the FV environment.', '--env_location');
+          const fVenvLocationItem = new StringInputTreeItem('FV Environment Path', '', 'Absulote path to the FV environment.', '--env_location', Action.run);
           const firstCompItem = new CheckboxTreeItem('1st Compilation', false, '-first_cmp y', false);
           const flagHeadlineItem = new HeadlineTreeItem('SMcVer Flags');
 
