@@ -16,7 +16,11 @@ export class MyTreeItem extends vscode.TreeItem {
     }
 
     if(command) {
-      this.command = command;
+      this.command = {
+        command: command.command,
+        title: command.title,
+        arguments: [this]
+      };
     }
     else {
       this.command = dummyCommand;
@@ -30,25 +34,19 @@ export class MyTreeItem extends vscode.TreeItem {
   }
 }
 
-
 export class OptionInputTreeItem extends MyTreeItem {
   private _value: string;
   public options: string[];
   public flag: string;
 
-  constructor(label: string, help: string, options: string[], flag: string, func?: Action, isOptinal?: boolean) {
-    super(label, vscode.TreeItemCollapsibleState.None, undefined, func, isOptinal);
+  constructor(label: string, help: string, options: string[], flag: string, command?: vscode.Command, func?: Action, isOptinal?: boolean) {
+    super(label, vscode.TreeItemCollapsibleState.None, command, func, isOptinal);
     this._value = "";
     this.flag = flag;
     this.options = options;
     this.description = '...';
     this.tooltip = help;
     this.iconPath = new vscode.ThemeIcon('edit');
-    this.command = {
-      command: 'extension.UpdateOptionValueCommand',
-      title: 'Option Command',
-      arguments: [this],
-    };
   }
 
   get value(): string {
@@ -80,14 +78,9 @@ export class IntegerInputTreeItem extends MyTreeItem {
   private _value: number;
 
   constructor(label: string, value: number, command?: vscode.Command) {
-    super(label, vscode.TreeItemCollapsibleState.None);
+    super(label, vscode.TreeItemCollapsibleState.None, command);
     this._value = value;
     this.description = String(value);
-    this.command = {
-      command: 'extension.UpdateIntegerValueCommand',
-      title: 'Input unroll',
-      arguments: [this],
-    };
   }
 
   get value(): number {
@@ -107,8 +100,8 @@ export class StringInputTreeItem extends MyTreeItem {
     flag: string;
     isWritten: boolean;
   
-    constructor(label: string, value: string, help: string, flag: string, func?: Action, isOptinal?: boolean) {
-      super(label, vscode.TreeItemCollapsibleState.None, undefined, func, isOptinal);
+    constructor(label: string, value: string, help: string, flag: string, command?: vscode.Command, func?: Action, isOptinal?: boolean) {
+      super(label, vscode.TreeItemCollapsibleState.None, command, func, isOptinal);
       this._value = value;
       this.help = help;
       this.flag = flag;
@@ -116,11 +109,6 @@ export class StringInputTreeItem extends MyTreeItem {
       this.iconPath = new vscode.ThemeIcon('edit');
       this.tooltip = help;
       this.description = '...';
-      this.command = {
-        command: 'extension.UpdateStringValueCommand',
-        title: 'Input ',
-        arguments: [this],
-      };
     }
   
     get value(): string {
@@ -160,8 +148,7 @@ export class StringInputTreeItem extends MyTreeItem {
             flagList[this.func].push(this.flag + " " + newValue);
         }
     }
-  }
-
+}
 
 export class HeadlineTreeItem extends MyTreeItem {
   constructor(label: string) {
@@ -179,17 +166,12 @@ export class CheckboxTreeItem extends MyTreeItem {
   isSmcverFlag: boolean;
 
   constructor(label: string, value: boolean, flag: string,  isSmcverFlag: boolean, command?: vscode.Command) {
-    super(label, vscode.TreeItemCollapsibleState.None);
+    super(label, vscode.TreeItemCollapsibleState.None, command);
     this.value = value;
     this.initFlag = "-"+flag;
     this.isSmcverFlag = isSmcverFlag;
     this.contextValue = 'checkboxTreeItem';
     this.tooltip = 'Add';
-    this.command = {
-      command: 'extension.toggleCheckbox',
-      title: 'Toggle Checkbox',
-      arguments: [this],
-    };
     this.updateCheckboxState();
   }
 

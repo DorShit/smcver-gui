@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as childProcess from 'child_process';
-import {onlyCompileFVEnvCommand, runSMcVerCommand, dummyCommand, cloneCommand, createFVCommand} from './Commands';
+import {onlyCompileFVEnvCommand, runSMcVerCommand, cloneCommand, createFVCommand, updateStringValueCommand, toggleCheckbox, updateIntegerValueCommand, updateOptionValueCommand} from './Commands';
 import {MyTreeItem, IntegerInputTreeItem, HeadlineTreeItem, CheckboxTreeItem, StringInputTreeItem, OptionInputTreeItem} from './TreeItems';
 import {compFlags, unrollString, smcverFlags, canIDoStuff, flagList, Action} from './Variables';
 import {sMakePath, sOnlyPath, clonePath, gb100CreateFVEnvPath, golanFWCreateFVEnvPath, pelicanCreateFVEnvPath} from './scripts/scriptsPaths';
@@ -113,6 +113,7 @@ export class SMCFunction {
             else if(item.label === "PELICAN"){
                 pythonScriptPath = pelicanCreateFVEnvPath;
             }
+            console.log(item.label);
             const pythonExecutable = 'python3.7'; 
             let flags = flagList[Action.build].join(' ') + " ";
             const command = `${pythonExecutable} ${pythonScriptPath} ${flags}`;
@@ -292,13 +293,13 @@ class MyTreeDataProvider implements vscode.TreeDataProvider<MyTreeItem> {
           return [cloneItem, cloneFlagHeadline];
         }
         else if(element.label === 'Clone Flags'){
-          const clonePathItem = new StringInputTreeItem('Directory Path', '', 'Path to clone directory location.', '--clone_path');
+          const clonePathItem = new StringInputTreeItem('Directory Path', '', 'Path to clone directory location.', '--clone_path', updateStringValueCommand);
           const optionSystem = ['Switch', 'GPU', 'NIC'];
-          const systemNameItem = new OptionInputTreeItem('System Name', 'Choose the system.', optionSystem, '--system_name');
+          const systemNameItem = new OptionInputTreeItem('System Name', 'Choose the system.', optionSystem, '--system_name', updateOptionValueCommand);
           const optionsProject = ['arava', 'gb100', 'carmel', 'sunbird'];
-          const projectNameItem = new OptionInputTreeItem('Project Name', 'Choose the project to compile.', optionsProject, '--project_name', Action.clone, true);
-          const fwMachineItem = new StringInputTreeItem('FW Machine Name', '', 'The name of the fw machine you want to connect.', '--fw_machine', Action.clone, true);
-          const folderNamenItem = new StringInputTreeItem('Folder Name', '', 'The name of the clone folder.', '--folder_name', Action.clone, true);
+          const projectNameItem = new OptionInputTreeItem('Project Name', 'Choose the project to compile.', optionsProject, '--project_name', updateOptionValueCommand, Action.clone, true);
+          const fwMachineItem = new StringInputTreeItem('FW Machine Name', '', 'The name of the fw machine you want to connect.', '--fw_machine', updateStringValueCommand, Action.clone, true);
+          const folderNamenItem = new StringInputTreeItem('Folder Name', '', 'The name of the clone folder.', '--folder_name', updateStringValueCommand, Action.clone, true);
 
           return  [clonePathItem, systemNameItem, projectNameItem, fwMachineItem, folderNamenItem];
         }
@@ -311,31 +312,31 @@ class MyTreeDataProvider implements vscode.TreeDataProvider<MyTreeItem> {
           return [gpuFWItem, golanFWItem, pelicanItem, flagHeadline];
         }
         else if(element.label === 'Build Flags'){
-          const envLocationItem = new StringInputTreeItem('Environment location', '', 'FV environment directory location to be open.', '--env_location', Action.build);
-          const envNameItem = new StringInputTreeItem('Environment name', '', 'FV environment name that will be open.', '--env_name', Action.build);
-          const functionNameItem = new StringInputTreeItem('Function name', '', 'The name of the function under test.', '--Function_name', Action.build);
-          const fileLocationItem = new StringInputTreeItem('File Location', '', 'Exe file location.', '--exe_file', Action.build);
-          const cFileNameItem = new StringInputTreeItem('C File Name', '', 'The name of the C file where the function is.', '--c_file_name', Action.build);
-          const makeLogLocationItem = new StringInputTreeItem('make.log Location', '', 'The path for the project build log.', '--make_log_location', Action.build);
+          const envLocationItem = new StringInputTreeItem('Environment location', '', 'FV environment directory location to be open.', '--env_location', updateStringValueCommand, Action.build);
+          const envNameItem = new StringInputTreeItem('Environment name', '', 'FV environment name that will be open.', '--env_name', updateStringValueCommand, Action.build);
+          const functionNameItem = new StringInputTreeItem('Function name', '', 'The name of the function under test.', '--Function_name', updateStringValueCommand, Action.build);
+          const fileLocationItem = new StringInputTreeItem('File Location', '', 'Exe file location.', '--exe_file', updateStringValueCommand, Action.build);
+          const cFileNameItem = new StringInputTreeItem('C File Name', '', 'The name of the C file where the function is.', '--c_file_name', updateStringValueCommand, Action.build);
+          const makeLogLocationItem = new StringInputTreeItem('make.log Location', '', 'The path for the project build log.', '--make_log_location', updateStringValueCommand, Action.build);
 
           return [envLocationItem, envNameItem, functionNameItem, fileLocationItem, cFileNameItem, makeLogLocationItem];
         }
         else if(element.label === 'Compilation & Run'){
           const runSmcverOnlyItem = new MyTreeItem('Run SMcVer', vscode.TreeItemCollapsibleState.None, runSMcVerCommand);
           const compileOnlyItem = new MyTreeItem('Compile', vscode.TreeItemCollapsibleState.None, onlyCompileFVEnvCommand);
-          const fVenvLocationItem = new StringInputTreeItem('FV Environment Path', '', 'Absulote path to the FV environment.', '--env_location', Action.run);
-          const firstCompItem = new CheckboxTreeItem('1st Compilation', false, '-first_cmp y', false);
+          const fVenvLocationItem = new StringInputTreeItem('FV Environment Path', '', 'Absulote path to the FV environment.', '--env_location', updateStringValueCommand, Action.run);
+          const firstCompItem = new CheckboxTreeItem('1st Compilation', false, '-first_cmp y', false, toggleCheckbox);
           const flagHeadlineItem = new HeadlineTreeItem('SMcVer Flags');
 
           return [compileOnlyItem, runSmcverOnlyItem, fVenvLocationItem, firstCompItem, flagHeadlineItem];
         }
         else if(element.label === 'SMcVer Flags'){
-          const helpFlagItem = new CheckboxTreeItem('help', false, 'h', false);
-          const smcverFlagsHelpFlagItem = new CheckboxTreeItem('help for smcverFlags', false, '-h', true);
-          const multiCexFlagItem = new CheckboxTreeItem('multiple counter examples', false, '-multiple_cex', true);
-          const noUnwindFlagItem = new CheckboxTreeItem('ignore unroll asserts', false, '-no-unwind-assert', true);
-          const disableMemoryTestFlagItem = new CheckboxTreeItem('disable rbw asserts', false, '-disableMemoryTest', true);
-          const unrollItem = new IntegerInputTreeItem('Unroll', 32);
+          const helpFlagItem = new CheckboxTreeItem('help', false, 'h', false, toggleCheckbox);
+          const smcverFlagsHelpFlagItem = new CheckboxTreeItem('help for smcverFlags', false, '-h', true, toggleCheckbox);
+          const multiCexFlagItem = new CheckboxTreeItem('multiple counter examples', false, '-multiple_cex', true, toggleCheckbox);
+          const noUnwindFlagItem = new CheckboxTreeItem('ignore unroll asserts', false, '-no-unwind-assert', true,toggleCheckbox);
+          const disableMemoryTestFlagItem = new CheckboxTreeItem('disable rbw asserts', false, '-disableMemoryTest', true, toggleCheckbox);
+          const unrollItem = new IntegerInputTreeItem('Unroll', 32, updateIntegerValueCommand);
 
           return [helpFlagItem, smcverFlagsHelpFlagItem, multiCexFlagItem, noUnwindFlagItem, disableMemoryTestFlagItem, unrollItem];
           
