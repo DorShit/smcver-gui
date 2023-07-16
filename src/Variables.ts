@@ -3,8 +3,8 @@ export var unrollString :string[] = ["--u 32"];
 export const smcverFlags: string [] = [];
 export var createFVEnvFlags: string [] = [];
 export var cloneFlags: string [] = [];
-export var runFlags: string[] = [];
-export var flagList: string[][] = [cloneFlags, createFVEnvFlags, runFlags];
+export var fvEnvironmentLocation: string[] = [];
+export var flagList: string[][] = [cloneFlags, createFVEnvFlags, fvEnvironmentLocation];
 
 export var canBuild = 6;
 export var canClone = 2;

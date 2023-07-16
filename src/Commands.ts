@@ -40,9 +40,14 @@ export const updateStringValueCommand: vscode.Command ={
     title: 'Option Command'
   };
 
+  export const loadCounterExampleCommand: vscode.Command = {
+    command: 'extension.LoadCounterExampleCommand',
+    title: 'Load CEX'
+  };
+
 export const dummyCommand: vscode.Command = {
     title: 'DummyCommand',
     command: 'extension.DummyCommand',
   };
 
-  module.exports = {onlyCompileFVEnvCommand, runSMcVerCommand, dummyCommand, cloneCommand, createFVCommand, updateStringValueCommand, toggleCheckbox, updateIntegerValueCommand, updateOptionValueCommand};
+  module.exports = {onlyCompileFVEnvCommand, runSMcVerCommand, dummyCommand, cloneCommand, createFVCommand, updateStringValueCommand, toggleCheckbox, updateIntegerValueCommand, updateOptionValueCommand, loadCounterExampleCommand};

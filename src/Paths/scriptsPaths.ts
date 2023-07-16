@@ -6,6 +6,7 @@ export const clonePath = "/swgwork/nirri/fv-scripts/FVClone.py";
 export const gb100CreateFVEnvPath = "/swgwork/nirri/fv-scripts/FVBuildGB100.py";
 export const golanFWCreateFVEnvPath = "/swgwork/nirri/fv-scripts/FVBuildGB100.py";
 export const pelicanCreateFVEnvPath = "/swgwork/nirri/fv-scripts/FVBuildGB100.py";
+export const cexDir = "/latest_run";
 
 export function pullFromGitRepo() {
     const gitRepoPath = 'https://gitlab-master.nvidia.com/fv-fw/fv-scripts.git'; 

@@ -2,7 +2,7 @@
   "name": "smcver-gui",
   "displayName": "SMcVer GUI",
   "description": "Help developers use SMcVer",
-  "version": "0.0.1",
+  "version": "1.0.1",
   "publisher": "Dor Shitrit",
   "icon": "images/MainLogo.jpg",
   "engines": {
@@ -21,12 +21,22 @@
       {
         "command": "smcver-gui.helloWorld",
         "title": "Hello World"
-      }
-    ],
-    "viewsWelcome": [
+      },
       {
-        "view": "smcver.smcverCEX",
-        "contents": "No counter examples available. Click the refresh button to load."
+        "command": "smcverCEX.refreshEntry",
+        "title": "Refresh",
+        "icon": {
+          "light": "images/refresh_light.svg",
+          "dark": "images/refresh_dark.svg"
+        }
+      },
+      {
+        "command": "smcverCEX.editEntry",
+        "title": "Counter Examples Location",
+        "icon": {
+          "light": "images/edit_light.svg",
+          "dark": "images/edit_dark.svg"
+        }
       }
     ],
     "viewsContainers": {
@@ -42,20 +52,27 @@
       "smcver": [
         {
           "id": "smcverFunctions",
-          "name": "Functions",
-          "css": {
-            "file": "./style/checkboxTreeView.css"
-          }
+          "name": "Functions"
         },
         {
           "id": "smcverCEX",
-          "name": "Counter Examples",
-          "icon": "images/refresh.svg"
+          "name": "Counter Examples"
         }
       ]
     },
     "menus": {
-      "view/title": []
+      "view/title": [
+        {
+          "command": "smcverCEX.refreshEntry",
+          "when": "view == smcverCEX",
+          "group": "navigation"
+        },
+        {
+          "command": "smcverCEX.editEntry",
+          "when": "view == smcverCEX ",
+          "group": "navigation"
+        }
+      ]
     }
   },
   "repository": {

@@ -3,12 +3,9 @@ import * as childProcess from 'child_process';
 import {onlyCompileFVEnvCommand, runSMcVerCommand, cloneCommand, createFVCommand, updateStringValueCommand, toggleCheckbox, updateIntegerValueCommand, updateOptionValueCommand} from './Commands';
 import {MyTreeItem, IntegerInputTreeItem, HeadlineTreeItem, CheckboxTreeItem, StringInputTreeItem, OptionInputTreeItem} from './TreeItems';
 import {compFlags, unrollString, smcverFlags, canIDoStuff, flagList, Action} from './Variables';
-import {sMakePath, sOnlyPath, clonePath, gb100CreateFVEnvPath, golanFWCreateFVEnvPath, pelicanCreateFVEnvPath} from './scripts/scriptsPaths';
+import {sMakePath, sOnlyPath, clonePath, gb100CreateFVEnvPath, golanFWCreateFVEnvPath, pelicanCreateFVEnvPath} from './Paths/scriptsPaths';
+import {hasSpace, removeFrom, removeUntil, isCex} from './lib/utils';
 
-
-function hasSpace(str: string): boolean {
-  return str.includes(' ');
-}
 
 export class SMCFunction {
 	constructor(context: vscode.ExtensionContext) {

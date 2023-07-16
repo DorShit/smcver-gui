@@ -4,15 +4,15 @@ import {compFlags, unrollString, smcverFlags, createFVEnvFlags, canIDoStuff, fla
 import {dummyCommand} from './Commands';
 
 export class MyTreeItem extends vscode.TreeItem {
-  public func: Action;
+  public action: Action;
   public isOptinal: boolean;
-  constructor(label: string, collapsibleState: vscode.TreeItemCollapsibleState, command?: vscode.Command, func?: Action, isOptinal?: boolean) {
+  constructor(label: string, collapsibleState: vscode.TreeItemCollapsibleState, command?: vscode.Command, action?: Action, isOptinal?: boolean) {
     super(label, collapsibleState);
-    if(func){
-      this.func = func;
+    if(action){
+      this.action = action;
     }
     else {
-      this.func = Action.clone;
+      this.action = Action.clone;
     }
 
     if(command) {
@@ -39,8 +39,8 @@ export class OptionInputTreeItem extends MyTreeItem {
   public options: string[];
   public flag: string;
 
-  constructor(label: string, help: string, options: string[], flag: string, command?: vscode.Command, func?: Action, isOptinal?: boolean) {
-    super(label, vscode.TreeItemCollapsibleState.None, command, func, isOptinal);
+  constructor(label: string, help: string, options: string[], flag: string, command?: vscode.Command, action?: Action, isOptinal?: boolean) {
+    super(label, vscode.TreeItemCollapsibleState.None, command, action, isOptinal);
     this._value = "";
     this.flag = flag;
     this.options = options;
@@ -58,18 +58,18 @@ export class OptionInputTreeItem extends MyTreeItem {
     this.description = newValue;
     this.iconPath = new vscode.ThemeIcon('notebook-state-success');
     this.tooltip = newValue;
-    if(flagList[this.func].length > 0){
+    if(flagList[this.action].length > 0){
       const indexToRemove = createFVEnvFlags.indexOf(this.flag + " " + this._value);
       if (indexToRemove !== -1) {
-        flagList[this.func].splice(indexToRemove, 1);
+        flagList[this.action].splice(indexToRemove, 1);
         if(this.isOptinal === false){
-            canIDoStuff[this.func]++;
+            canIDoStuff[this.action]++;
         }
       }
     } 
-    flagList[this.func].push(this.flag + " " + this._value);
+    flagList[this.action].push(this.flag + " " + this._value);
     if(this.isOptinal === false){
-      canIDoStuff[this.func]--;
+      canIDoStuff[this.action]--;
     }
   }
 }
@@ -100,8 +100,8 @@ export class StringInputTreeItem extends MyTreeItem {
     flag: string;
     isWritten: boolean;
   
-    constructor(label: string, value: string, help: string, flag: string, command?: vscode.Command, func?: Action, isOptinal?: boolean) {
-      super(label, vscode.TreeItemCollapsibleState.None, command, func, isOptinal);
+    constructor(label: string, value: string, help: string, flag: string, command?: vscode.Command, action?: Action, isOptinal?: boolean) {
+      super(label, vscode.TreeItemCollapsibleState.None, command, action, isOptinal);
       this._value = value;
       this.help = help;
       this.flag = flag;
@@ -118,17 +118,17 @@ export class StringInputTreeItem extends MyTreeItem {
     set value(newValue: string) {
         if(!this.isWritten){ 
           if(this.isOptinal === false){
-            canIDoStuff[this.func]--;
+            canIDoStuff[this.action]--;
           }
           this.isWritten = true;
           this.iconPath = new vscode.ThemeIcon('notebook-state-success');
           this.description = '';
         }
         else{
-            if(flagList[this.func].length > 0){
-                const indexToRemove = flagList[this.func].indexOf(this.flag + " " + this._value);
+            if(flagList[this.action].length > 0){
+                const indexToRemove = flagList[this.action].indexOf(this.flag + " " + this._value);
                 if (indexToRemove !== -1) {
-                  flagList[this.func].splice(indexToRemove, 1);
+                  flagList[this.action].splice(indexToRemove, 1);
                 }
             }
         }
@@ -137,7 +137,7 @@ export class StringInputTreeItem extends MyTreeItem {
           this.iconPath = new vscode.ThemeIcon('edit');
             this.tooltip = this.help;
             if(this.isOptinal === false){
-              canIDoStuff[this.func]++;
+              canIDoStuff[this.action]++;
             }
             this.isWritten = false;
             this.description = '...';
@@ -145,7 +145,7 @@ export class StringInputTreeItem extends MyTreeItem {
         else {
             this.iconPath = new vscode.ThemeIcon('notebook-state-success');
             this.tooltip = newValue;
-            flagList[this.func].push(this.flag + " " + newValue);
+            flagList[this.action].push(this.flag + " " + newValue);
         }
     }
 }
@@ -205,5 +205,20 @@ export class CheckboxTreeItem extends MyTreeItem {
     }
     this.tooltip = 'Add';
     }
+  }
+}
+
+export class CEXTreeItem extends MyTreeItem {
+  public counterExample: string;
+  constructor(public readonly label: string, counterExample: string, command: vscode.Command) {
+    super(label, vscode.TreeItemCollapsibleState.None);
+    this.tooltip = label;
+    this.counterExample = counterExample;
+    this.contextValue = 'fileItem';
+    this.command = {
+      command: command.command,
+      title: command.title,
+      arguments: [this]
+    };
   }
 }
