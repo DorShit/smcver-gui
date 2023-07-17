@@ -11,16 +11,37 @@ import {cexDir} from './Paths/scriptsPaths';
 
 export class CEXTree {
     public fvPath: string;
+    public fvLastEnvLocation: string;
 	constructor(context: vscode.ExtensionContext) {
         this.fvPath = "";
+        this.fvLastEnvLocation = "";
         const treeDataProvider = new FileTreeDataProvider("");
         vscode.window.registerTreeDataProvider('smcverCEX', treeDataProvider);
 
          vscode.commands.registerCommand('smcverCEX.refreshEntry',  () => {
-            if(fvEnvironmentLocation[0] === undefined) {return;}
-            this.fvPath = removeUntil(fvEnvironmentLocation[0], '/');
-            const pathToCex = `${this.fvPath}${cexDir}`;
-            treeDataProvider.refresh(pathToCex);
+            if(fvEnvironmentLocation[0] === undefined && this.fvPath === "") {return;}
+            else if(fvEnvironmentLocation[0] !== undefined && this.fvPath !== ""){
+              if(this.fvLastEnvLocation !== fvEnvironmentLocation[0]){
+                this.fvPath = removeUntil(fvEnvironmentLocation[0], '/');
+                this.fvLastEnvLocation = fvEnvironmentLocation[0];
+                const pathToCex = `${this.fvPath}${cexDir}`;
+                treeDataProvider.refresh(pathToCex);
+              }
+              else {
+                const pathToCex = `${this.fvPath}${cexDir}`;
+                treeDataProvider.refresh(pathToCex);
+              }
+            }
+            else if(fvEnvironmentLocation[0] !== undefined){
+              this.fvPath = removeUntil(fvEnvironmentLocation[0], '/');
+              this.fvLastEnvLocation = fvEnvironmentLocation[0];
+              const pathToCex = `${this.fvPath}${cexDir}`;
+              treeDataProvider.refresh(pathToCex);
+            }
+            else if(this.fvPath !== ""){
+              const pathToCex = `${this.fvPath}${cexDir}`;
+              treeDataProvider.refresh(pathToCex);
+            }
         });
 
         vscode.commands.registerCommand('smcverCEX.editEntry', async () => {
