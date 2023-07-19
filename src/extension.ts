@@ -13,4 +13,10 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 // This method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() {
+	const header = "Thanks for using SMcVer";
+	const options: vscode.MessageOptions = { detail: 'Hope to see you soon!', modal: true };
+	vscode.window.showInformationMessage(header, options, ...["Ok"]).then((item)=>{
+    console.log(item);
+});
+}
