@@ -25,6 +25,7 @@ export class MyTreeItem extends vscode.TreeItem {
     else {
       this.command = dummyCommand;
     }
+
     if(isOptinal){
       this.isOptinal = isOptinal;
     }
