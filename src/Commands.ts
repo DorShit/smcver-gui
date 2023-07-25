@@ -1,4 +1,7 @@
-import * as vscode from 'vscode';
+/**
+  Commands.ts - Declaration ONLY of all of our commands.
+*/
+import * as vscode from 'vscode'; // For vscode extension logic and structs.
 
 export const onlyCompileFVEnvCommand: vscode.Command = {
     title: 'OnlyCompileFVEnvCommand',

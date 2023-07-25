@@ -1,3 +1,6 @@
+/** 
+  scriptPaths.ts - Paths for all our scripts and folder location we use.
+*/
 export const sMakePath = "/swgwork/nirri/fv-scripts/FVCompile.py";
 export const sOnlyPath ="/swgwork/nirri/fv-scripts/SmcverRun.py";
 export const clonePath = "/swgwork/nirri/fv-scripts/FVClone.py";

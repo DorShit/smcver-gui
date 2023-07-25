@@ -10,7 +10,7 @@ First extension for using SMcVer! Get ready to have fun in more convenient way!
 
 ## Requirements
 
-Nodejs install inorder to use npm.
+Node.js install inorder to use npm.
 
 ## Known Issues
 
@@ -20,9 +20,11 @@ FV building environment script is still in progress for Pelican.
 
 Users appreciate release notes as you update your extension.
 
-### 1.0.2
+### 1.0.3
 
 Basic SMcVer functionality
 Building FV environment
+Cloning projects
+Update of counter examples.
 
 **Enjoy!**

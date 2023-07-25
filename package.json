@@ -2,7 +2,7 @@
   "name": "smcver-gui",
   "displayName": "SMcVer GUI",
   "description": "Help developers use SMcVer",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "publisher": "Dor Shitrit",
   "icon": "images/MainLogo.jpg",
   "engines": {
