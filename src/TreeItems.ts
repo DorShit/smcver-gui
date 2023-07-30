@@ -56,6 +56,9 @@ export class OptionInputTreeItem extends MyTreeItem {
     this.options = options;
     this.description = '...';
     this.tooltip = help;
+    if(this.isOptinal){
+      this.tooltip += " (OPTINAL)"; 
+    }
     this.iconPath = new vscode.ThemeIcon('edit');
   }
   /** Function when calling to: <> = item.value; */
@@ -123,18 +126,23 @@ export class StringInputTreeItem extends MyTreeItem {
     constructor(label: string, value: string, help: string, flag: string, command?: vscode.Command, action?: Action, isOptinal?: boolean) {
       super(label, vscode.TreeItemCollapsibleState.None, command, action, isOptinal);
       this._value = value;
-      this.help = help;
       this.flag = flag;
       this.isWritten = false;
       this.iconPath = new vscode.ThemeIcon('edit');
-      this.tooltip = help;
       this.description = '...';
+      this.help = help;
+      if(this.isOptinal){
+        this.help += " (OPTINAL)"; 
+      }
+      this.tooltip = this.help;
     }
-    /** Function when calling to: <> = item.value; */
+
     get value(): string {
+    /** Function when calling to: <> = item.value; */
       return this._value;
     }
 
+    set value(newValue: string) {
     /** Function when calling to: item.value = <>; 
        Algo: 1. Check if we already have en existing value. If NOT: 
                 a. Update the flag counter according to the action and optional value. 
@@ -154,7 +162,6 @@ export class StringInputTreeItem extends MyTreeItem {
                 b. Update the tooltip.
                 c. Update the description.
     */
-    set value(newValue: string) {
         if(!this.isWritten){ 
           if(this.isOptinal === false){
             canIDoStuff[this.action]--;
@@ -209,8 +216,20 @@ export class CheckboxTreeItem extends MyTreeItem {
     this.initFlag = "-"+flag;
     this.isSmcverFlag = isSmcverFlag;
     this.contextValue = 'checkboxTreeItem';
-    this.tooltip = 'Add';
-    this.iconPath = new vscode.ThemeIcon('error-small');
+    if(this.value){
+      this.tooltip = 'Remove';
+      this.iconPath = new vscode.ThemeIcon('notebook-state-success');
+      if(this.isSmcverFlag){
+        smcverFlags.push(this.initFlag);
+      }
+      else {
+        compFlags.push(this.initFlag);
+      }
+    }
+    else {
+      this.tooltip = 'Add';
+      this.iconPath = new vscode.ThemeIcon('error-small');
+    }
   }
 
   /** Function when choosing/unchoosing flags.
@@ -236,7 +255,6 @@ export class CheckboxTreeItem extends MyTreeItem {
         }
         this.tooltip = 'Remove';
       } else {
-        this.iconPath = new vscode.ThemeIcon('error-small');
         if(this.isSmcverFlag){
           if(smcverFlags.length > 0){
             const indexToRemove = smcverFlags.indexOf(this.initFlag);
@@ -254,6 +272,7 @@ export class CheckboxTreeItem extends MyTreeItem {
         }
       }
       this.tooltip = 'Add';
+      this.iconPath = new vscode.ThemeIcon('error-small');
       }
   }
 }

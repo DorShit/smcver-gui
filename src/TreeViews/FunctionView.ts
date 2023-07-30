@@ -21,11 +21,11 @@ export class FunctionTree {
       vscode.window.registerTreeDataProvider('smcverFunctions', treeDataProvider);
 
       vscode.commands.registerCommand('extension.DummyCommand', () => {
-      /** Dummy command that do nothing. We use it as a default command to tree items that we want to have no action.*/
+      /** Dummy command that do nothing. We use it as a default command to tree items that we want to have no action. */
       });
 
       vscode.commands.registerCommand('extension.toggleCheckbox', (item: CheckboxTreeItem) => {
-      /** Command that triggers the updateCheckboxState for the CheckboxTreeItem and than refresh it.*/
+        /** Command that triggers the updateCheckboxState for the CheckboxTreeItem and than refresh it. */
         item.updateCheckboxState();
         treeDataProvider.refresh(item);
       });
@@ -76,22 +76,19 @@ export class FunctionTree {
       });
 
       vscode.commands.registerCommand('extension.UpdateOptionValueCommand', async (item: OptionInputTreeItem) => {
-      /**
-        Command used to pop a window to choose an option represent a flag. 
-        Algo: 1. Open a window to choose a flag option.
-              2. Update the item value that represents the flag value with the new value.
-              4. Refresh the tree item.
-      */
+        /**
+          Command used to pop a window to choose an option represent a flag. 
+          Algo: 1. Open a window to choose a flag option.
+                2. Update the item value that represents the flag value with the new value.
+                4. Refresh the tree item.
+        */
         const chosenOption = await vscode.window.showQuickPick(item.options, {
           placeHolder: 'Select an option',
         });
       
         if (chosenOption) {
           item.value = chosenOption; // triggers the method 'set value' at OptionInputTreeItem.
-        } else {
-          // User canceled the selection
-          console.log('Selection canceled');
-        }
+        } 
         treeDataProvider.refresh(item);
       });
 
@@ -123,7 +120,7 @@ export class FunctionTree {
       
         if (newValue !== undefined) {
           const tempVal = item.value;
-          item.value = newValue; // triggers the method 'set value' at StringInputTreeItem.
+          item.value = newValue; // Triggers the method 'set value' at StringInputTreeItem.
           if(newValue === ''){ // Remove field 
             if(tempVal !== ''){
                 vscode.window.showInformationMessage(`Field erased. Please fill again.`);
@@ -355,32 +352,31 @@ export class FunctionTree {
 }
 
 class MyTreeDataProvider implements vscode.TreeDataProvider<MyTreeItem> {
-/** 
-  MyTreeDataProvider - The class we use for generating our tree items. 
-*/
+  /** 
+    MyTreeDataProvider - The class we use for generating our tree items. 
+  */
 
-/** _onDidChangeTreeData is used at refresh function with the method fire. It will re-generate MyTreeDataProvider again. */
+  /** _onDidChangeTreeData is used at refresh function with the method fire. It will re-generate MyTreeDataProvider again. */
   private _onDidChangeTreeData: vscode.EventEmitter<MyTreeItem | CheckboxTreeItem | HeadlineTreeItem | undefined | void> = new vscode.EventEmitter<MyTreeItem | CheckboxTreeItem |  HeadlineTreeItem | undefined | void>();
   readonly onDidChangeTreeData: vscode.Event<MyTreeItem | CheckboxTreeItem | HeadlineTreeItem | undefined | void> = this._onDidChangeTreeData.event;
 
    getTreeItem(element: MyTreeItem): vscode.TreeItem {
-  /** 
-    input: tree item.
-    output: Same tree item.
-  */
+    /** 
+      input: tree item.
+      output: Same tree item.
+    */
     return element;
   }
   
   getChildren(element?: MyTreeItem): vscode.ProviderResult<MyTreeItem[]> {
-  /** 
-    getChildren - Incharge of the hierarchy of our tree view. For each tree item we generate here the function, getChildren, will be recursive called with the item. If we want to add "children"
-    to a tree item we will generate new tree items when identifing the correct item (Here I did it as: element.label === <tree item label>).
-    
-    input: tree item or undefined.
-    output: list of tree items. 
-  */
-      if (!element) {
-        // Root level tree items
+    /** 
+      getChildren - Incharge of the hierarchy of our tree view. For each tree item we generate here the function, getChildren, will be recursive called with the item. If we want to add "children"
+      to a tree item we will generate new tree items when identifing the correct item (Here I did it as: element.label === <tree item label>).
+      
+      input: tree item or undefined.
+      output: list of tree items. 
+    */
+      if (!element) { // Root level tree items
         const clone = new MyTreeItem('Clone', vscode.TreeItemCollapsibleState.Collapsed);
         const createFVEnv = new MyTreeItem('Create FV Environment', vscode.TreeItemCollapsibleState.Collapsed);
         const compileRun = new MyTreeItem('Compilation & Run', vscode.TreeItemCollapsibleState.Collapsed);
@@ -445,7 +441,7 @@ class MyTreeDataProvider implements vscode.TreeDataProvider<MyTreeItem> {
   }
   
   refresh(item?: MyTreeItem): void {
-  /** Triggers _onDidChangeTreeData.fire() to re-generate the tree item we get as an input. */
+    /** Triggers _onDidChangeTreeData.fire() to re-generate the tree item we get as an input. */
     this._onDidChangeTreeData.fire(item);
   }
 

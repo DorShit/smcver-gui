@@ -21,23 +21,53 @@ export class CEXTree {
             * All of the commands we use under "Counter Example" tree view.
   The class has 2 private variables: 
             * fvPath - The last path the user insert under the edit button OR the FV Environment Path flag at the FunctionView.ts.  
-            * fvLastEnvLocation - The last path the user insert the FV Environment Path flag at the FunctionView.ts. This variable exists
+            * fvPrevEnvLocation - The last path the user insert the FV Environment Path flag at the FunctionView.ts. This variable exists
               to let the user edit the path from the edit button and NOT runover the FV Environment Path flag.
 */
   private fvPath: string;
-  private fvLastEnvLocation: string;
+  private fvPrevEnvLocation: string;
 	constructor(context: vscode.ExtensionContext) {
     this.fvPath = "";
-    this.fvLastEnvLocation = "";
+    this.fvPrevEnvLocation = "";
     const treeDataProvider = new FileTreeDataProvider("");
     vscode.window.registerTreeDataProvider('smcverCEX', treeDataProvider);
 
     vscode.commands.registerCommand('smcverCEX.refreshEntry',  () => {
+    /**
+      Command that will look for the last path that was given for counter examples and will excute the refresh method at FileTreeDataProvider inorder to regenrate all the counter examples.
+      The idea is that we can get path input from 2 places: 'FV Environment Path' flag & local edit entry button. We want to refresh base on the last path that was given by the user.
+      The trick is that we don't want to run the 'FV Environment Path' flag when we insert a path at the edit entry button but we want to refer to it's counter examples if it was given.
+      In order to do it, we save the last 'FV Environment Path' flag value at a variable: fvPrevEnvLocation. That can help us check if we changed the flag or our entry when we excute 
+      this command and refer to it. In addition, we will save the last path that was given at variable, fvPath, and used it to extract the counter examples.
+
+      Algo: 1. Check if both the 'FV Environment Path' flag and the edit field are empty. If so:
+               a. Do nothing 
+            else:
+               a. Check if both the 'FV Environment Path' flag and the edit field have value. If so:
+                  i. Check if the 'FV Environment Path' flag was changed. If so:
+                    *. Save the 'FV Environment Path' flag value to the path variable.
+                    **. Save the value to be the previous environment location. 
+                    ***. Create the path.
+                    ****. Excute the refresh method at FileTreeDataProvider.
+                  else: 
+                    *. Create the path with the edit entry value.
+                    **. Excute the refresh method at FileTreeDataProvider.
+               else: 
+                  i. Check if the 'FV Environment Path' flag isn't empty. If so:
+                    *. Save the 'FV Environment Path' flag value to the path variable.
+                    **. Save the value to be the previous environment location. 
+                    ***. Create the path.
+                    ****. Excute the refresh method at FileTreeDataProvider.
+                  else: 
+                    *. Check if the path entry isn't empty. If so:
+                       #. Create the path with the edit entry value.
+                       ##. Excute the refresh method at FileTreeDataProvider.
+     */
       if(fvEnvironmentLocation[0] === undefined && this.fvPath === "") {return;}
       else if(fvEnvironmentLocation[0] !== undefined && this.fvPath !== ""){
-        if(this.fvLastEnvLocation !== fvEnvironmentLocation[0]){
+        if(this.fvPrevEnvLocation !== fvEnvironmentLocation[0]){
           this.fvPath = removeUntil(fvEnvironmentLocation[0], '/');
-          this.fvLastEnvLocation = fvEnvironmentLocation[0];
+          this.fvPrevEnvLocation = fvEnvironmentLocation[0];
           const pathToCex = `${this.fvPath}${cexDir}`;
           treeDataProvider.refresh(pathToCex);
         }
@@ -48,7 +78,7 @@ export class CEXTree {
       }
       else if(fvEnvironmentLocation[0] !== undefined){
         this.fvPath = removeUntil(fvEnvironmentLocation[0], '/');
-        this.fvLastEnvLocation = fvEnvironmentLocation[0];
+        this.fvPrevEnvLocation = fvEnvironmentLocation[0];
         const pathToCex = `${this.fvPath}${cexDir}`;
         treeDataProvider.refresh(pathToCex);
       }
@@ -67,7 +97,7 @@ export class CEXTree {
             3. Update the variable fvPath with the new path.
             4. Update the item value that represents the flag value with the new value.
             5. Refresh the tree view (smcverCex) with the input: path + /latest_run.
-    */
+     */
         const path = await vscode.window.showInputBox({
             prompt: "Path to counter examples",
             value: String(this.fvPath),

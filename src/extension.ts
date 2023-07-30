@@ -6,13 +6,13 @@
   import {CEXTree} from './TreeViews/CexView';
   
   /**
-	This method is called when your extension is activated
-	Your extension is activated the very first time the command is executed
+    This method is called when your extension is activated
+    Your extension is activated the very first time the command is executed
   */
   export function activate(context: vscode.ExtensionContext) {
-	  console.log('Congratulations, your extension "smcver-gui" is now active!');
-	  new FunctionTree(context);
-	  new CEXTree(context);
+    console.log('Congratulations, your extension "smcver-gui" is now active!');
+    new FunctionTree(context);
+    new CEXTree(context);
   }
   
   /** This method is called when your extension is deactivated */ 

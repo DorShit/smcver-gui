@@ -20,7 +20,7 @@ FV building environment script is still in progress for Pelican.
 
 Users appreciate release notes as you update your extension.
 
-### 1.0.3
+### 1.0.4
 
 Basic SMcVer functionality
 Building FV environment
